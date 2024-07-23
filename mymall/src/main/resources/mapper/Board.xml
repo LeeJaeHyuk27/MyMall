@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.mall.board.dao.BoardDao">
+	<resultMap type="com.mall.table.vo.BoardInfoVO" id="boardMap">
+		<result property="userId" 			column="USER_ID" />
+		<result property="boardSeq" 		column="BOARD_SEQ" />
+		<result property="boardType" 		column="BOARD_TYPE" />
+		<result property="title" 			column="TITLE" />
+		<result property="content" 			column="CONTENT" />
+		<result property="attchFile" 		column="ATTCH_FILE" />
+		<result property="replyYn" 			column="REPLY_YN" />
+		<result property="replyContent" 	column="REPLY_CONTENT" />
+		<result property="regDt" 			column="REG_DT" />
+		<result property="delYn" 			column="DEL_YN" />
+		<result property="userName" 		column="USER_NAME" />		
+		<result property="replyDt" 			column="REPLY_DT" />		
+		<result property="secretYn" 		column="SECRET_YN" />		
+		<result property="secretPwd" 		column="SECRET_PWD" />		
+	</resultMap>
+	
+	<select id="selectBoardList" resultMap="boardMap">
+		SELECT A.TITLE, B.USER_NAME, A.REG_DT, A.BOARD_SEQ, A.SECRET_YN
+		FROM TB_BOARD_INFO A,
+		(
+		SELECT USER_ID, USER_NAME
+		FROM TB_USER_INFO
+		)B
+		WHERE A.USER_ID = B.USER_ID
+		ORDER BY REG_DT DESC
+	</select>
+	<select id="selectBoardDetail" resultMap="boardMap">
+		SELECT B.USER_NAME, A.TITLE, A.CONTENT, A.ATTCH_FILE, A.REG_DT
+		FROM TB_BOARD_INFO A,
+		(
+		SELECT USER_ID, USER_NAME
+		FROM TB_USER_INFO
+		)B
+		WHERE A.USER_ID = B.USER_ID
+		AND A.BOARD_SEQ = #{boardSeq}
+	</select>
+	<select id="secretPwdCheck" resultMap="boardMap">
+		SELECT B.USER_NAME, A.TITLE, A.CONTENT, A.ATTCH_FILE, A.REG_DT
+		FROM TB_BOARD_INFO A,
+		(
+		SELECT USER_ID, USER_NAME
+		FROM TB_USER_INFO
+		)B
+		WHERE A.USER_ID = B.USER_ID
+		AND A.BOARD_SEQ = #{boardSeq}
+		AND A.SECRET_PWD = #{secretPwd}
+	</select>
+	<insert id="insertBoard">
+		INSERT INTO TB_BOARD_INFO(USER_ID, BOARD_SEQ, BOARD_TYPE, TITLE, CONTENT, ATTCH_FILE, REG_DT, SECRET_YN, SECRET_PWD)
+		SELECT #{userId}, BOARD_SEQ, #{boardType}, #{title}, #{content}, #{attchFile}, SYSDATE, #{secretYn}, #{secretPwd}
+		FROM(
+		SELECT
+		MAX(BOARD_SEQ)+1 AS BOARD_SEQ
+		FROM TB_BOARD_INFO
+		WHERE 1=1
+		) 
+	</insert>
+</mapper>

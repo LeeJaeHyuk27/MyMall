@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.mall.goods.dao.CartDao">
+	<resultMap type="com.mall.table.vo.CartInfoVO" id="cartMap">
+		<result property="userId" 			column="USER_ID" />
+		<result property="goodsCd" 			column="GOODS_CD" />
+		<result property="buyQty" 			column="BUY_QTY" />
+		<result property="regDt" 			column="REG_DT" />
+		<result property="totalPrice" 		column="TOTAL_PRICE" />
+		<result property="sellPrice" 		column="SELL_PRICE" />
+		<result property="goodsName" 		column="GOODS_NAME" />
+	</resultMap>
+	<select id="selectCartList" resultMap="cartMap">
+		SELECT B.GOODS_NAME, A.BUY_QTY, B.SELL_PRICE, A.BUY_QTY * B.SELL_PRICE AS TOTAL_PRICE, A.GOODS_CD
+		FROM TB_CART_INFO A,
+		(
+		SELECT GOODS_CD, SELL_PRICE, GOODS_NAME
+		FROM TB_GOODS_INFO
+		)B
+		WHERE A.GOODS_CD = B.GOODS_CD
+		AND A.USER_ID = #{userId}
+	</select>
+	<delete id="deleteCartList">
+		DELETE TB_CART_INFO
+		WHERE GOODS_CD = #{goodsCd}
+		AND USER_ID = #{userId}
+	</delete>
+</mapper>

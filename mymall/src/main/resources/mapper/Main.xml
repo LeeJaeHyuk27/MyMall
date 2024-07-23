@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.mall.main.dao.MainDao">
+	<resultMap type="com.mall.table.vo.GoodsInfoVO" id="goodsMap">
+		<result property="goodsCd" 			column="GOODS_CD" />
+		<result property="ctCd" 			column="CT_CD" />
+		<result property="goodsName" 		column="GOODS_NAME" />
+		<result property="normalPrice" 		column="NORMAL_PRICE" />
+		<result property="sellPrice" 		column="SELL_PRICE" />
+		<result property="ivQty" 			column="IV_QTY" />
+		<result property="goodsStatus" 		column="GOODS_STATUS" />
+		<result property="supplierCd" 		column="SUPPLIER_CD" />
+		<result property="thumbnailUrl" 	column="THUMBNAIL_URL" />
+		<result property="content" 			column="CONTENT" />
+		<result property="regDt" 			column="REG_DT" />
+		<result property="ctName" 			column="CT_NAME" />
+		<result property="upCtCd" 			column="UP_CT_CD" />
+	</resultMap>
+	<resultMap type="com.mall.table.vo.CategoryVO" id="ctMap">
+		<result property="ctCd" 		column="CT_CD" />
+		<result property="ctName" 		column="CT_NAME" />
+		<result property="ctLevel" 		column="CT_LEVEL" />
+		<result property="upCtCd" 		column="UP_CT_CD" />
+		<result property="regDt" 		column="REG_DT" />
+	</resultMap>
+	<select id="selectGoodsImage" resultMap="goodsMap">
+		SELECT A.GOODS_CD, A.GOODS_NAME, A.SELL_PRICE, D.CT_CD
+		FROM 
+		(
+		SELECT GOODS_CD, GOODS_NAME, SELL_PRICE, CT_CD, ROW_NUMBER() OVER (ORDER BY REG_DT DESC) AS RN
+		FROM TB_GOODS_INFO
+		)A,
+		(
+		SELECT B.GOODS_CD, B.GOODS_NAME, C.CT_NAME AS 대분류, C.CT_CD AS CT_CD
+		FROM TB_GOODS_INFO B,
+		(
+		SELECT CT_CD, CT_NAME
+		FROM TB_GOODS_CATEGORY
+		WHERE CT_LEVEL = '1'
+		)C
+		WHERE B.CT_CD LIKE '%'||C.CT_CD||'%'
+		)D
+		WHERE RN <![CDATA[ <= ]]> 12
+		AND A.GOODS_CD = D.GOODS_CD
+	</select>
+	<select id="selectCtLv1" resultMap="ctMap">
+		SELECT CT_CD, CT_NAME
+		FROM TB_GOODS_CATEGORY 
+		WHERE CT_LEVEL = '1'
+	</select>
+
+	
+</mapper>

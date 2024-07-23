@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.mall.join.dao.JoinDao">
+	
+	<resultMap type="com.mall.table.vo.UserInfoVO" id="userMap">
+		<result property="userId" 		column="USER_ID" />
+		<result property="userName" 	column="USER_NAME" />
+		<result property="email" 		column="EMAIL" />
+		<result property="phone" 		column="PHONE" />
+		<result property="addr" 		column="ADDR" />
+		<result property="addrDtl" 		column="ADDR_DTL" />
+		<result property="withDrawYn" 	column="WITHDRAW_YN" />
+		<result property="withDrawDt" 	column="WITHDRAW_DT" />
+		<result property="joinDt" 		column="JOIN_DT" />
+	</resultMap>
+	
+	<insert id="insertUser">
+		INSERT INTO TB_USER_INFO(USER_ID, USER_NAME, USER_PWD, EMAIL, PHONE, ADDR, JOIN_DT)
+		VALUES (#{userId}, #{userName}, #{userPwd}, #{email}, #{phone}, #{addr}, SYSDATE)
+	</insert>
+	
+</mapper>

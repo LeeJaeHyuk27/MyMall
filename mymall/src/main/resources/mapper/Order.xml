@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.mall.order.dao.OrderDao">
+	<resultMap type="com.mall.table.vo.OrderInfoVO" id="orderMap">
+		<result property="orderNo" 			column="ORDER_NO" />
+		<result property="userId" 			column="USER_ID" />
+		<result property="orderGoodsName" 	column="ORDER_GOODS_NAME" />
+		<result property="orderPrice" 		column="ORDER_PRICE" />
+		<result property="orderStatus" 		column="ORDER_STATUS" />
+		<result property="orderDt" 			column="ORDER_DT" />
+		<result property="receiveName" 		column="RECEIVE_NAME" />
+		<result property="zipcd" 			column="ZIPCD" />
+		<result property="addr" 			column="ADDR" />
+		<result property="addrDtl" 			column="ADDR_DTL" />
+		<result property="memo" 			column="MEMO" />
+		<result property="regDt" 			column="REG_DT" />
+		<result property="payment" 			column="PAYMENT" />
+		<result property="buyQty" 			column="BUY_QTY" />
+		<result property="goodsCd" 			column="GOODS_CD" />
+		<result property="unitPrice" 		column="UNIT_PRICE" />
+		<result property="userName" 		column="USER_NAME" />
+		<result property="receivePhone" 	column="RECEIVE_PHONE" />
+	</resultMap>
+	<select id="selectMaxOrderNo" resultType="String">
+		SELECT
+			REGEXP_REPLACE(
+			CASE
+    			WHEN SUBSTR(MAX(ORDER_NO), 1, 6) = REPLACE(SYSDATE, '/', '') THEN
+        			SYSDATE||TO_CHAR (SUBSTR(MAX(ORDER_NO), 7, 6)+1, '000000')
+        			ELSE
+            			TO_CHAR(SYSDATE, 'YYMMDD') || '000001'
+        			END,
+        			'[ /]+', ''
+        			) AS ORDER_NO
+		FROM TB_ORDER_INFO
+		WHERE 1=1
+	</select>
+	<insert id="insertOrderInfo">
+		INSERT INTO TB_ORDER_INFO(ORDER_NO, USER_ID, ORDER_GOODS_NAME, ORDER_PRICE, ORDER_STATUS, ORDER_DT, RECEIVE_NAME, ADDR, REG_DT, PAYMENT, RECEIVE_PHONE)
+		SELECT #{orderNo}, #{userId}, ORDER_GOODS_NAME, TOTAL_PRICE, '결제완료', SYSDATE, #{receiveName}, #{receiveAddr} , SYSDATE, #{payment}, #{receivePhone}
+		FROM 
+		(
+			SELECT CASE WHEN CNT > 1 THEN GOODS_NAME || ' 외 ' || (CNT-1)||'건'
+	       		ELSE GOODS_NAME
+	       		END AS ORDER_GOODS_NAME, 
+	       		TOTAL_PRICE
+			FROM (
+			SELECT COUNT(*) CNT, MIN(B.GOODS_NAME) GOODS_NAME, SUM(B.SELL_PRICE*A.BUY_QTY) TOTAL_PRICE
+			FROM TB_CART_INFO A, TB_GOODS_INFO B
+			WHERE A.GOODS_CD = B.GOODS_CD
+	 		AND USER_ID = #{userId}
+			)
+		)
+	</insert>
+	<insert id="insertOrderGoods">
+		INSERT INTO TB_ORDER_GOODS(ORDER_NO, GOODS_CD, UNIT_PRICE, BUY_QTY)
+		SELECT #{orderNo}, A.GOODS_CD, B.SELL_PRICE, A.BUY_QTY
+		FROM TB_CART_INFO A,
+		(
+		SELECT GOODS_CD, SELL_PRICE
+		FROM TB_GOODS_INFO
+		)B
+		WHERE A.USER_ID = #{userId}
+		AND A.GOODS_CD = B.GOODS_CD
+	</insert>
+	<resultMap type="com.mall.table.vo.OrderGoodsVO" id="orderGoodsMap">
+		<result property="orderNo" 			column="ORDER_NO" />
+		<result property="goodsCd" 			column="GOODS_CD" />
+		<result property="unitPrice" 		column="UNIT_PRICE" />
+		<result property="buyQty" 			column="BUY_QTY" />
+		<result property="ctCd" 			column="CT_CD" />
+		<result property="goodsName" 		column="GOODS_NAME" />
+		<result property="ivQty" 			column="IV_QTY" />
+		<result property="ctName" 			column="CT_NAME" />
+	</resultMap>
+	
+	<resultMap type="com.mall.table.vo.UserInfoVO" id="userMap">
+		<result property="userId" 		column="USER_ID" />
+		<result property="userName" 	column="USER_NAME" />
+		<result property="email" 		column="EMAIL" />
+		<result property="phone" 		column="PHONE" />
+		<result property="addr" 		column="ADDR" />
+		<result property="addrDtl" 		column="ADDR_DTL" />
+		<result property="withDrawYn" 	column="WITHDRAW_YN" />
+		<result property="withDrawDt" 	column="WITHDRAW_DT" />
+		<result property="joinDt" 		column="JOIN_DT" />
+		<result property="orderCnt" 	column="ORDER_CNT" />
+		<result property="orderPrice" 	column="ORDER_PRICE" />
+	</resultMap>
+	<select id="selectOrderInfo" resultMap="userMap">
+		SELECT USER_NAME, PHONE, ADDR||' '||ADDR_DTL AS ADDR
+		FROM TB_USER_INFO 
+		WHERE USER_ID = #{userId}
+	</select>
+	<resultMap type="com.mall.table.vo.CartInfoVO" id="cartMap">
+		<result property="userId" 			column="USER_ID" />
+		<result property="goodsCd" 			column="GOODS_CD" />
+		<result property="buyQty" 			column="BUY_QTY" />
+		<result property="regDt" 			column="REG_DT" />
+		<result property="totalPrice" 		column="TOTAL_PRICE" />
+		<result property="sellPrice" 		column="SELL_PRICE" />
+		<result property="goodsName" 		column="GOODS_NAME" />
+	</resultMap>
+	<delete id="deleteCartList">
+		DELETE FROM TB_CART_INFO
+		WHERE USER_ID = #{userId}
+	</delete>
+</mapper>
